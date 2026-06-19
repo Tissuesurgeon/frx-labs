@@ -1,24 +1,59 @@
 # Deploying FRX Labs
 
-FRX Labs is a multi-service monorepo. Recommended split:
+FRX Labs is a multi-service monorepo. All app images build from a **single root `Dockerfile`** using named targets.
 
-| Service | Best platform | Dockerfile |
-|---------|---------------|------------|
-| **Dashboard** (Next.js) | [Vercel](./deploy-vercel.md) or Railway | `apps/dashboard/Dockerfile` |
-| **API** (Rust) | [Railway](./deploy-railway.md) | `apps/api/Dockerfile` |
-| **AI Engine** (Python) | Railway | `apps/ai-engine/Dockerfile` |
-| **Chain Runner** (Node, optional) | Railway | `apps/chain-runner/Dockerfile` |
-| **PostgreSQL** | Railway plugin / Render | — |
-| **ChromaDB** | Railway (Docker image) | `chromadb/chroma` |
+| Service | Build target | Best platform |
+|---------|--------------|---------------|
+| **API** (Rust) | `api` | [Railway](./deploy-railway.md) |
+| **AI Engine** (Python) | `ai-engine` | Railway |
+| **Chain Runner** (Node) | `chain-runner` | Railway (optional) |
+| **Dashboard** (Next.js) | `dashboard` | [Vercel](./deploy-vercel.md) or Railway |
+| **PostgreSQL** | — | Railway plugin / Render |
+| **ChromaDB** | — | `chromadb/chroma` image |
 
-## Quick local Docker stack
+## Docker — one file, one compose
+
+**Build and run everything:**
 
 ```bash
 cp .env.example .env
-# Set JWT_SECRET and (optional) OPENAI_API_KEY for production AI
+docker compose up -d --build
+```
 
-docker compose -f docker-compose.prod.yml up -d --build
-# On-chain mode: add --profile onchain
+**Infra only** (Postgres + Chroma for local native dev):
+
+```bash
+docker compose up -d postgres chromadb
+```
+
+**On-chain chain-runner:**
+
+```bash
+docker compose --profile onchain up -d --build
+```
+
+**Build all images without starting:**
+
+```bash
+docker compose build
+# or
+bash scripts/docker-build.sh
+```
+
+**Build a single service:**
+
+```bash
+docker build --target api          -t frx-api .
+docker build --target ai-engine    -t frx-ai .
+docker build --target chain-runner -t frx-chain-runner .
+docker build --target dashboard  -t frx-dashboard .
+```
+
+Dashboard build args (when building standalone):
+
+```bash
+docker build --target dashboard -t frx-dashboard \
+  --build-arg NEXT_PUBLIC_API_URL=https://your-api.up.railway.app .
 ```
 
 Open http://localhost:3000 (dashboard) and http://localhost:8080/health (API).
@@ -68,14 +103,3 @@ Copy `.env.example` to `.env`. Critical production values:
 | AI Engine | `GET /health` |
 | Chain Runner | `GET /health` |
 | Dashboard | `GET /` |
-
-## Build images manually
-
-```bash
-docker build -f apps/api/Dockerfile -t frx-api .
-docker build -f apps/ai-engine/Dockerfile -t frx-ai .
-docker build -f apps/chain-runner/Dockerfile -t frx-chain-runner .
-docker build -f apps/dashboard/Dockerfile \
-  --build-arg NEXT_PUBLIC_API_URL=https://your-api.up.railway.app \
-  -t frx-dashboard .
-```

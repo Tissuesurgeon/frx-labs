@@ -7,6 +7,9 @@
     "dev:dashboard": "pnpm --filter @frx/dashboard dev",
     "build": "pnpm -r build && cargo build --release",
     "docker:up": "docker compose up -d",
+    "docker:build": "docker compose build",
+    "docker:stack": "docker compose up -d --build",
+    "docker:images": "bash scripts/docker-build.sh",
     "migrate": "cd apps/api && sqlx migrate run",
     "seed": "cd apps/api && cargo run --bin seed"
   },

@@ -200,10 +200,10 @@ Deploy to production with Docker and cloud guides:
 
 ```bash
 # Full local production stack
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose up -d --build
 ```
 
-See **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** for architecture, env vars, and per-service Dockerfiles.
+See **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** for architecture, env vars, and the unified `Dockerfile`.
 
 ## Troubleshooting
 

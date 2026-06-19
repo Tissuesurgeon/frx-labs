@@ -11,7 +11,20 @@ Railway runs the **backend services** (API, AI engine, chain runner) and optiona
 ## 1. Create a Railway project
 
 1. **New Project** → **Deploy from GitHub repo** → select `frx-labs`
-2. You will create **multiple services** from the same repo (one per Dockerfile).
+2. You will create **multiple services** from the same repo, each using the root **`Dockerfile`** with a different **build target**.
+
+## Unified Dockerfile
+
+All app images build from the repository root:
+
+| Service | Dockerfile path | Build target |
+|---------|-----------------|--------------|
+| API | `Dockerfile` | `api` |
+| AI Engine | `Dockerfile` | `ai-engine` |
+| Chain Runner | `Dockerfile` | `chain-runner` |
+| Dashboard | `Dockerfile` | `dashboard` |
+
+In Railway **Settings → Build**, set **Dockerfile Path** to `Dockerfile` and **Docker Target** (build stage) to the target for that service.
 
 ## 2. PostgreSQL
 
@@ -26,7 +39,8 @@ The API runs migrations automatically on boot.
 1. **Add service** → **GitHub repo** → same repository
 2. **Settings** → **Build**:
    - Builder: **Dockerfile**
-   - Dockerfile path: `apps/api/Dockerfile`
+   - Dockerfile path: `Dockerfile`
+   - **Docker target / stage:** `api`
    - Root directory: `/` (repo root)
 3. **Variables** (minimum):
 
@@ -48,7 +62,7 @@ Railway sets `PORT` automatically; the API reads `PORT` or `API_PORT`.
 
 ## 4. AI Engine service
 
-1. **Add service** → Dockerfile path: `apps/ai-engine/Dockerfile`
+1. **Add service** → Dockerfile path: `Dockerfile`, build target: `ai-engine`
 2. **Variables**:
 
 ```env
@@ -75,7 +89,7 @@ Alternatively run Chroma locally during development only and use OpenAI without 
 
 ## 6. Chain Runner (optional — on-chain demo)
 
-1. **Add service** → Dockerfile path: `apps/chain-runner/Dockerfile`
+1. **Add service** → Dockerfile path: `Dockerfile`, build target: `chain-runner`
 2. **Variables**:
 
 ```env
@@ -90,7 +104,7 @@ FRX_AGENT_ADDRESS=0x...
 
 ## 7. Dashboard on Railway (alternative to Vercel)
 
-1. **Add service** → Dockerfile path: `apps/dashboard/Dockerfile`
+1. **Add service** → Dockerfile path: `Dockerfile`, build target: `dashboard`
 2. **Build args** (Railway → Variables → build-time):
 
 ```env
@@ -120,8 +134,8 @@ NEXT_PUBLIC_FRX_AGENT_ADDRESS=0x...
 Before pushing to Railway:
 
 ```bash
-docker compose -f docker-compose.prod.yml up -d --build
-docker compose -f docker-compose.prod.yml logs -f api
+docker compose up -d --build
+docker compose logs -f api
 ```
 
 ## Troubleshooting

@@ -68,9 +68,8 @@ Update any wallet/deep-link allowlists if you use custom auth flows.
 If you prefer not to use Vercel, deploy the dashboard with Docker on Railway:
 
 ```bash
-docker build -f apps/dashboard/Dockerfile \
-  --build-arg NEXT_PUBLIC_API_URL=https://your-api.up.railway.app \
-  -t frx-dashboard .
+docker build --target dashboard -t frx-dashboard \
+  --build-arg NEXT_PUBLIC_API_URL=https://your-api.up.railway.app .
 ```
 
 See [Railway guide](./deploy-railway.md#7-dashboard-on-railway-alternative-to-vercel).
