@@ -1,5 +1,6 @@
 'use client';
 
+import type { SuiClient } from '@mysten/sui/client';
 import type { Transaction } from '@mysten/sui/transactions';
 
 export interface VaultChainIds {
@@ -61,14 +62,19 @@ export function parseAgentCapCreation(
 }
 
 export async function waitForObjectChanges(
-  client: { waitForTransaction: (opts: unknown) => Promise<{ objectChanges?: ObjectChange[]; digest: string }> },
+  client: SuiClient,
   digest: string,
 ): Promise<{ objectChanges: ObjectChange[]; digest: string }> {
   const result = await client.waitForTransaction({
     digest,
     options: { showObjectChanges: true },
   });
-  return { objectChanges: result.objectChanges ?? [], digest: result.digest };
+  const objectChanges = (result.objectChanges ?? []).map((c) => ({
+    type: c.type,
+    objectType: 'objectType' in c ? c.objectType : undefined,
+    objectId: 'objectId' in c ? c.objectId : undefined,
+  }));
+  return { objectChanges, digest: result.digest };
 }
 
 export type SignExecuteFn = (input: { transaction: Transaction }) => Promise<{ digest: string }>;

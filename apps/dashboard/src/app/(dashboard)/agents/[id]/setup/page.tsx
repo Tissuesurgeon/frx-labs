@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { Agent, Vault } from '@frx/shared';
+import type { Agent, Strategy, Vault } from '@frx/shared';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { getClientShield, getClientWallet } from '@/lib/api';
 

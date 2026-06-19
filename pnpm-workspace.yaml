@@ -1,6 +1,9 @@
 packages:
-  - "packages/*"
-  - "apps/dashboard"
-  - "apps/chain-runner"
+  - apps/*
+  - packages/*
+
 allowBuilds:
-  esbuild: true
+  esbuild: set this to true or false
+
+overrides:
+  '@mysten/sui': 1.24.0
