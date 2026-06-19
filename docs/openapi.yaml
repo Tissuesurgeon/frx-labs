@@ -1,0 +1,252 @@
+openapi: 3.0.3
+info:
+  title: FRX Labs API
+  version: 0.2.0
+  description: FRX Labs — FRX Wallet + FRX Shield on Sui
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+
+  /api/v1/execute:
+    post:
+      summary: Execute agent intent through firewall
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecuteRequest'
+      responses:
+        '200':
+          description: Execution result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecuteResponse'
+
+  /api/v1/agents:
+    get:
+      summary: List agents
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Agent'
+    post:
+      summary: Create agent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAgentRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateAgentResponse'
+
+  /api/v1/agents/{id}:
+    get:
+      summary: Get agent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+
+  /api/v1/agents/{id}/pause:
+    post:
+      summary: Pause agent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+  /api/v1/agents/{id}/resume:
+    post:
+      summary: Resume agent
+
+  /api/v1/agents/{id}/revoke:
+    post:
+      summary: Revoke agent
+
+  /api/v1/agents/{id}/capabilities:
+    get:
+      summary: List capabilities
+    post:
+      summary: Create capability
+
+  /api/v1/agents/{id}/policy:
+    get:
+      summary: Get policy
+    put:
+      summary: Update policy
+
+  /api/v1/agents/{id}/executions:
+    get:
+      summary: List agent executions
+      security:
+        - bearerAuth: []
+
+  /api/v1/agents/{id}/keys:
+    post:
+      summary: Issue API key
+
+  /api/v1/executions:
+    get:
+      summary: List all executions
+
+  /api/v1/alerts:
+    get:
+      summary: List alerts
+
+  /api/v1/vaults:
+    get:
+      summary: List vaults
+    post:
+      summary: Create vault
+
+  /api/v1/vaults/{id}:
+    get:
+      summary: Get vault
+
+  /api/v1/vaults/{id}/deposit:
+    post:
+      summary: Deposit to vault
+
+  /api/v1/vaults/{id}/agent-caps:
+    get:
+      summary: List agent caps for vault
+    post:
+      summary: Issue AgentCap to agent
+
+  /api/v1/vaults/{id}/pause:
+    post:
+      summary: Pause vault
+
+  /api/v1/vaults/{id}/unpause:
+    post:
+      summary: Unpause vault
+
+  /api/v1/vaults/{id}/transactions:
+    get:
+      summary: List vault transactions
+
+  /api/v1/agent-caps/{id}/revoke:
+    post:
+      summary: Revoke agent cap
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    Agent:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        owner_address: { type: string }
+        status: { type: string, enum: [active, paused, revoked] }
+        trust_score: { type: integer }
+        created_at: { type: string, format: date-time }
+
+    ExecuteRequest:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string }
+        asset_in: { type: string }
+        asset_out: { type: string }
+        amount: { type: number }
+        protocol: { type: string }
+        metadata: { type: object }
+
+    ExecuteResponse:
+      type: object
+      properties:
+        status: { type: string, enum: [approved, blocked, requires_review] }
+        risk_score: { type: integer }
+        execution_id: { type: string, format: uuid }
+        reason: { type: string }
+        policy_violation: { type: boolean }
+        policy_check: { type: string }
+        execution: { type: string }
+
+    CreateAgentRequest:
+      type: object
+      required: [name, owner_address]
+      properties:
+        name: { type: string }
+        owner_address: { type: string }
+        trust_score: { type: integer }
+
+    CreateAgentResponse:
+      type: object
+      properties:
+        agent: { $ref: '#/components/schemas/Agent' }
+        api_key: { type: string }
+
+    RiskAnalysisRequest:
+      type: object
+      description: Internal Rust -> Python contract
+      properties:
+        transaction: { type: object }
+        agent_history: { type: array }
+        policy: { type: object }
+        market_context: { type: object }
+
+    RiskAnalysisResponse:
+      type: object
+      properties:
+        risk_score: { type: integer, minimum: 0, maximum: 100 }
+        risk_level: { type: string, enum: [low, medium, high] }
+        reasons: { type: array, items: { type: string } }
+
+    Vault:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        owner_address: { type: string }
+        balance: { type: integer }
+        status: { type: string, enum: [active, paused, locked] }
+        total_budget: { type: integer }
+        total_spent: { type: integer }
+
+    AgentCap:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        vault_id: { type: string, format: uuid }
+        agent_id: { type: string, format: uuid }
+        allowed_actions: { type: array, items: { type: string } }
+        max_per_tx: { type: integer }
+        daily_limit: { type: integer }
+        status: { type: string, enum: [active, revoked] }

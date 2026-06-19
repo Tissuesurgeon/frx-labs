@@ -1,0 +1,203 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+
+  ::selection {
+    @apply bg-accent/30 text-foreground;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-none border border-border bg-surface-raised/90 p-6 shadow-panel;
+  }
+
+  .console-card {
+    @apply relative overflow-hidden border border-border bg-console-panel/95 shadow-panel;
+  }
+
+  .console-card::before {
+    content: '';
+    @apply pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent;
+  }
+
+  .console-metric {
+    @apply console-card p-5;
+  }
+
+  .console-metric-value {
+    @apply font-mono text-3xl font-bold tabular-nums tracking-tight;
+  }
+
+  .console-panel {
+    @apply console-card;
+  }
+
+  .console-panel-header {
+    @apply flex items-center justify-between border-b border-border/80 bg-console-hud/80 px-4 py-2.5;
+  }
+
+  .console-panel-title {
+    @apply font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground;
+  }
+
+  .console-panel-body {
+    @apply p-4 font-mono text-sm;
+  }
+
+  .console-chrome {
+    @apply flex items-center gap-1.5;
+  }
+
+  .console-chrome-dot {
+    @apply h-2 w-2 rounded-full;
+  }
+
+  .console-feed-line {
+    @apply flex items-start gap-3 border-b border-border/40 py-2.5 last:border-0;
+  }
+
+  .console-hud-strip {
+    @apply border-b border-border/80 bg-console-hud/90 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground backdrop-blur-sm;
+  }
+
+  .console-nav-item {
+    @apply relative flex items-center gap-2.5 border-l-2 px-3 py-2 font-mono text-xs transition-all;
+  }
+
+  .console-nav-active {
+    @apply border-accent bg-accent/[0.07] text-accent shadow-glow-sm;
+  }
+
+  .console-nav-idle {
+    @apply border-transparent text-muted-foreground hover:border-border-bright hover:bg-surface-raised/60 hover:text-foreground;
+  }
+
+  .console-path {
+    @apply font-mono text-[10px] uppercase tracking-[0.28em] text-accent-dim;
+  }
+
+  .console-title {
+    @apply font-mono text-2xl font-bold tracking-tight text-foreground md:text-3xl;
+  }
+
+  .console-scanline {
+    @apply pointer-events-none absolute inset-0 overflow-hidden opacity-[0.03];
+  }
+
+  .console-scanline::after {
+    content: '';
+    @apply absolute inset-x-0 h-24 bg-gradient-to-b from-transparent via-accent to-transparent;
+    animation: scan 8s linear infinite;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider;
+  }
+
+  .badge-active,
+  .badge-approved {
+    @apply border-accent/30 bg-accent/10 text-accent;
+  }
+
+  .badge-paused {
+    @apply border-warning/30 bg-warning/10 text-warning;
+  }
+
+  .badge-revoked,
+  .badge-blocked {
+    @apply border-destructive/30 bg-destructive/10 text-destructive;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-none border px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] transition-all disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply border-accent/60 bg-accent/10 text-accent shadow-glow-sm hover:border-accent hover:bg-accent hover:text-accent-foreground;
+  }
+
+  .btn-ghost {
+    @apply border-border text-muted-foreground hover:border-accent/40 hover:text-accent;
+  }
+
+  .btn-destructive {
+    @apply border-destructive/50 bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground;
+  }
+
+  .data-table {
+    @apply w-full text-sm;
+  }
+
+  .data-table thead tr {
+    @apply border-b border-border text-left;
+  }
+
+  .data-table th {
+    @apply pb-3 pr-4 font-mono text-[10px] uppercase tracking-widest text-muted-foreground;
+  }
+
+  .data-table tbody tr {
+    @apply border-b border-border/60 transition-colors last:border-0 hover:bg-background/40;
+  }
+
+  .data-table td {
+    @apply py-3 pr-4;
+  }
+
+  .section-anchor {
+    @apply scroll-mt-28;
+  }
+
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(0, 255, 170, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 255, 170, 0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  .landing-btn {
+    @apply inline-flex items-center justify-center border px-6 py-3 font-mono text-sm tracking-wider transition-all;
+  }
+
+  .landing-btn-primary {
+    @apply border-accent bg-accent/10 text-accent hover:bg-accent hover:text-accent-foreground;
+  }
+
+  .landing-btn-ghost {
+    @apply border-border text-muted-foreground hover:border-accent/50 hover:text-foreground;
+  }
+
+  .landing-btn-sm {
+    @apply px-4 py-2 text-xs;
+  }
+
+  .landing-input {
+    @apply w-full border border-border bg-background px-4 py-3 font-mono text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground;
+  }
+
+  .landing-input:focus {
+    @apply border-accent/60 ring-1 ring-accent/20;
+  }
+
+  .ticker-bar {
+    @apply font-mono;
+  }
+
+  details > summary {
+    list-style: none;
+  }
+
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+}

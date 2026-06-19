@@ -1,0 +1,6 @@
+packages:
+  - "packages/*"
+  - "apps/dashboard"
+  - "apps/chain-runner"
+allowBuilds:
+  esbuild: true

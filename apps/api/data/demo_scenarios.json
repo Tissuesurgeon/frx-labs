@@ -1,0 +1,147 @@
+{
+  "scenarios": [
+    {
+      "id": "routine_swap",
+      "label": "Routine swap within AgentCap limits",
+      "bootstrap": true,
+      "replay_index": 50,
+      "action": "swap",
+      "transaction": {
+        "asset_in": "USDC",
+        "asset_out": "SUI",
+        "amount": 50000000,
+        "protocol": "DeepBook"
+      }
+    },
+    {
+      "id": "momentum_buy",
+      "label": "Momentum buy on dip",
+      "replay_index": 13,
+      "action": "swap",
+      "transaction": {
+        "asset_in": "USDC",
+        "asset_out": "SUI",
+        "amount": 50000000,
+        "protocol": "DeepBook"
+      },
+      "requires_momentum": true
+    },
+    {
+      "id": "denied_transfer",
+      "label": "Unauthorized transfer attempt",
+      "action": "transfer",
+      "transaction": {
+        "asset": "SUI",
+        "amount": 50000000,
+        "to": "0xexternal_demo_recipient"
+      }
+    },
+    {
+      "id": "cap_per_tx_exceeded",
+      "label": "Per-transaction limit exceeded",
+      "action": "swap",
+      "transaction": {
+        "asset_in": "USDC",
+        "asset_out": "SUI",
+        "amount": 200000000,
+        "protocol": "DeepBook"
+      }
+    },
+    {
+      "id": "unapproved_protocol",
+      "label": "Unapproved DEX protocol",
+      "action": "swap",
+      "transaction": {
+        "asset_in": "USDC",
+        "asset_out": "SUI",
+        "amount": 50000000,
+        "protocol": "Cetus"
+      }
+    },
+    {
+      "id": "high_risk_volatile_market",
+      "label": "High-risk volatile market block",
+      "replay_index": 13,
+      "action": "swap",
+      "transaction": {
+        "asset_in": "USDC",
+        "asset_out": "SUI",
+        "amount": 50000000,
+        "protocol": "DeepBook"
+      }
+    },
+    {
+      "id": "spend_seed_a",
+      "label": "Routine swap (budget seed)",
+      "replay_index": 30,
+      "action": "swap",
+      "transaction": {
+        "asset_in": "USDC",
+        "asset_out": "SUI",
+        "amount": 80000000,
+        "protocol": "DeepBook"
+      }
+    },
+    {
+      "id": "spend_seed_b",
+      "label": "Routine swap (budget seed)",
+      "replay_index": 31,
+      "action": "swap",
+      "transaction": {
+        "asset_in": "USDC",
+        "asset_out": "SUI",
+        "amount": 80000000,
+        "protocol": "DeepBook"
+      }
+    },
+    {
+      "id": "spend_seed_c",
+      "label": "Routine swap (budget seed)",
+      "replay_index": 32,
+      "action": "swap",
+      "transaction": {
+        "asset_in": "USDC",
+        "asset_out": "SUI",
+        "amount": 80000000,
+        "protocol": "DeepBook"
+      }
+    },
+    {
+      "id": "daily_limit_exceeded",
+      "label": "Daily spend limit exceeded",
+      "replay_index": 33,
+      "action": "swap",
+      "transaction": {
+        "asset_in": "USDC",
+        "asset_out": "SUI",
+        "amount": 300000000,
+        "protocol": "DeepBook"
+      }
+    },
+    {
+      "id": "requires_review",
+      "label": "Held for owner review",
+      "replay_index": 25,
+      "action": "swap",
+      "set_approval_mode": "review",
+      "transaction": {
+        "asset_in": "USDC",
+        "asset_out": "SUI",
+        "amount": 50000000,
+        "protocol": "DeepBook"
+      }
+    },
+    {
+      "id": "recovery_swap",
+      "label": "Approved recovery swap",
+      "replay_index": 40,
+      "action": "swap",
+      "transaction": {
+        "asset_in": "USDC",
+        "asset_out": "SUI",
+        "amount": 50000000,
+        "protocol": "DeepBook"
+      }
+    }
+  ]
+}

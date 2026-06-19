@@ -1,0 +1,16 @@
+{
+  "name": "frx-labs",
+  "private": true,
+  "scripts": {
+    "dev:api": "cargo run -p frx-labs-api",
+    "dev:ai": "cd apps/ai-engine && .venv/bin/uvicorn app.main:app --reload --port 8001",
+    "dev:dashboard": "pnpm --filter @frx/dashboard dev",
+    "build": "pnpm -r build && cargo build --release",
+    "docker:up": "docker compose up -d",
+    "migrate": "cd apps/api && sqlx migrate run",
+    "seed": "cd apps/api && cargo run --bin seed"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}
