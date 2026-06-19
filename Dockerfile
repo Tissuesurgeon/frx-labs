@@ -109,7 +109,7 @@ CMD ["node", "src/index.js"]
 # ---------------------------------------------------------------------------
 # Dashboard (Next.js standalone)
 # ---------------------------------------------------------------------------
-FROM node:20-alpine AS dashboard-base
+FROM node:22-alpine AS dashboard-base
 RUN corepack enable && corepack prepare pnpm@11.1.3 --activate
 
 FROM dashboard-base AS dashboard-deps
@@ -148,7 +148,7 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
 
 RUN pnpm --filter @frx/dashboard build
 
-FROM node:20-alpine AS dashboard
+FROM node:22-alpine AS dashboard
 
 WORKDIR /app
 
