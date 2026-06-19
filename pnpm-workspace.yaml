@@ -2,8 +2,5 @@ packages:
   - apps/*
   - packages/*
 
-allowBuilds:
-  esbuild: set this to true or false
-
 overrides:
   '@mysten/sui': 1.24.0

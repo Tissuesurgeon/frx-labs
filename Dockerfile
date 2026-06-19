@@ -110,7 +110,7 @@ CMD ["node", "src/index.js"]
 # Dashboard (Next.js standalone)
 # ---------------------------------------------------------------------------
 FROM node:20-alpine AS dashboard-base
-RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+RUN corepack enable && corepack prepare pnpm@11.1.3 --activate
 
 FROM dashboard-base AS dashboard-deps
 WORKDIR /app
