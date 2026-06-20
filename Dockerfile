@@ -6,6 +6,9 @@
 #   docker build --target chain-runner   -t frx-chain-runner .
 #   docker build --target dashboard      -t frx-dashboard .
 #
+# Railway (no build-target support): use Dockerfile.api, Dockerfile.ai-engine, etc.
+# Service config: railway/<service>.json — do not set startCommand / preDeployCommand.
+#
 # Build all app images:
 #   docker compose build
 #
