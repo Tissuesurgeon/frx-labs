@@ -1,175 +1,97 @@
 # Deploy FRX Labs on Railway
 
-Railway runs the **backend services** (API, AI engine, chain runner) and optionally the dashboard via Docker. PostgreSQL and ChromaDB are added as separate Railway services.
+Railway hosts the **unified backend** (API + AI engine + optional chain runner), **PostgreSQL**, and **ChromaDB**. Deploy the **frontend** on [Vercel](./deploy-vercel.md).
 
 ## Prerequisites
 
 - [Railway account](https://railway.app/)
 - GitHub repo connected to Railway
-- Sui testnet package IDs in `.env.example` (already published for wallet/shield)
 
-## 1. Create a Railway project
+## 1. Backend service (single container)
 
-1. **New Project** → **Deploy from GitHub repo** → select `frx-labs`
-2. You will create **multiple services** from the same repo, each using the root **`Dockerfile`** with a different **build target**.
+One Docker image runs all backend processes:
 
-## Unified Dockerfile
+| Process | Internal port | Notes |
+|---------|---------------|-------|
+| Rust API | `PORT` (8080) | Public — Railway health check |
+| AI engine | 8001 | localhost only |
+| Chain runner | 8090 | localhost only, optional |
 
-All app images build from the repository root:
-
-| Service | Dockerfile path | Build target |
-|---------|-----------------|--------------|
-| API | `Dockerfile` | `api` |
-| AI Engine | `Dockerfile` | `ai-engine` |
-| Chain Runner | `Dockerfile` | `chain-runner` |
-| Dashboard | `Dockerfile` | `dashboard` |
-
-In Railway **Settings → Build**, set **Dockerfile Path** to `Dockerfile` and **Docker Target** (build stage) to the target for that service.
-
-## 2. PostgreSQL
-
-1. **Add service** → **Database** → **PostgreSQL**
-2. Copy the **`DATABASE_URL`** (or `DATABASE_PRIVATE_URL` for internal networking)
-3. Ensure the URL includes SSL if required: append `?sslmode=require` if missing
-
-The API runs migrations automatically on boot.
-
-## 3. API service
-
-1. **Add service** → **GitHub repo** → same repository
-2. **Settings** → **Build**:
+1. **Add service** → **GitHub repo** → `frx-labs`
+2. **Settings → Config file path:** `/railway/backend.json`
+3. **Settings → Build:**
    - Builder: **Dockerfile**
-   - Dockerfile path: `Dockerfile`
-   - **Docker target / stage:** `api`
-   - Root directory: `/` (repo root)
-3. **Variables** (minimum):
+   - Variable: `RAILWAY_DOCKERFILE_PATH=Dockerfile.backend`
+   - Root directory: `/`
+4. **Settings → Deploy:** clear **Start Command** and **Pre-deploy Command**
+5. **Variables:**
 
 ```env
 DATABASE_URL=${{Postgres.DATABASE_URL}}
 JWT_SECRET=<long-random-secret>
-AI_ENGINE_URL=http://${{AI-Engine.RAILWAY_PRIVATE_DOMAIN}}:8001
-CHAIN_RUNNER_URL=http://${{Chain-Runner.RAILWAY_PRIVATE_DOMAIN}}:8090
 SUI_MODE=mock
 SUI_NETWORK=testnet
 DEMO_RUNNER_ENABLED=true
 RUST_LOG=info,frx_labs_api=info
-```
-
-4. **Networking** → **Generate domain** (public HTTPS URL for the API)
-5. **Deploy** — verify `https://<api-domain>/health` returns `ok`
-
-Railway sets `PORT` automatically; the API reads `PORT` or `API_PORT`.
-
-## 4. AI Engine service
-
-1. **Add service** → Dockerfile path: `Dockerfile`, build target: `ai-engine`
-2. **Variables**:
-
-```env
-PORT=8001
 CHROMA_HOST=${{Chroma.RAILWAY_PRIVATE_DOMAIN}}
 CHROMA_PORT=8000
 LLM_PROVIDER=openai
 OPENAI_API_KEY=sk-...
-# Or for Ollama (self-hosted elsewhere):
-# LLM_PROVIDER=ollama
-# OLLAMA_BASE_URL=https://your-ollama-host:11434
 ```
 
-3. Generate a **private** domain (AI engine should not need to be public if only the API calls it)
-
-## 5. ChromaDB service
-
-1. **Add service** → **Empty service**
-2. **Settings** → **Source** → Docker image: `chromadb/chroma:latest`
-3. Set **PORT** `8000` (Railway auto-detects)
-4. Name the service `Chroma` so `${{Chroma.RAILWAY_PRIVATE_DOMAIN}}` resolves in AI engine vars
-
-Alternatively run Chroma locally during development only and use OpenAI without RAG in cloud (deterministic scoring still works).
-
-## 6. Chain Runner (optional — on-chain demo)
-
-1. **Add service** → Dockerfile path: `Dockerfile`, build target: `chain-runner`
-2. **Variables**:
+For on-chain mode, add:
 
 ```env
-SUI_NETWORK=testnet
+SUI_MODE=testnet
+CHAIN_RUNNER_ENABLED=true
 FRX_WALLET_PACKAGE_ID=0x7708398894df08d136ba54b7cc5f4e5af2eb408808148c1da5419002a67f8d49
 FRX_AGENT_PRIVATE_KEY=suiprivkey1...
 FRX_AGENT_ADDRESS=0x...
 ```
 
-3. Fund the agent wallet with testnet SUI
-4. Set API `SUI_MODE=testnet` and `CHAIN_RUNNER_URL` to this service’s private URL
+6. **Networking** → **Generate domain** → verify `https://<domain>/health`
 
-## 7. Dashboard on Railway (alternative to Vercel)
+> `AI_ENGINE_URL` and `CHAIN_RUNNER_URL` default to `http://127.0.0.1:8001` and `:8090` inside the container — do not override unless you split services again.
 
-1. **Add service** → Dockerfile path: `Dockerfile`, build target: `dashboard`
-2. **Build args** (Railway → Variables → build-time):
+## 2. PostgreSQL
 
-```env
-NEXT_PUBLIC_API_URL=https://<your-api-railway-domain>
-NEXT_PUBLIC_SUI_NETWORK=testnet
-NEXT_PUBLIC_SUI_RPC_URL=https://fullnode.testnet.sui.io:443
-NEXT_PUBLIC_FRX_WALLET_PACKAGE_ID=0x7708398894df08d136ba54b7cc5f4e5af2eb408808148c1da5419002a67f8d49
-NEXT_PUBLIC_FRX_AGENT_ADDRESS=0x...
-```
+1. **Add service** → **Database** → **PostgreSQL**
+2. Reference in backend: `DATABASE_URL=${{Postgres.DATABASE_URL}}`
 
-3. Generate public domain → open dashboard
+## 3. ChromaDB
 
-> **Tip:** `NEXT_PUBLIC_*` vars are baked in at **build time**. Redeploy after changing them.
+1. **Add service** → Docker image: `chromadb/chroma:latest`
+2. Name it `Chroma` for `${{Chroma.RAILWAY_PRIVATE_DOMAIN}}`
+3. Set `CHROMA_HOST` / `CHROMA_PORT=8000` on the backend service
 
-## 8. Service wiring checklist
+## 4. Frontend (Vercel)
+
+Deploy `frontend/` on Vercel — see [deploy-vercel.md](./deploy-vercel.md).
+
+Set `NEXT_PUBLIC_API_URL` to the Railway backend public URL.
+
+## 5. Service wiring
 
 | From | To | Variable |
 |------|-----|----------|
-| Dashboard | API | `NEXT_PUBLIC_API_URL` |
-| API | Postgres | `DATABASE_URL` |
-| API | AI Engine | `AI_ENGINE_URL` |
-| API | Chain Runner | `CHAIN_RUNNER_URL` |
-| AI Engine | Chroma | `CHROMA_HOST` / `CHROMA_PORT` |
-
-## 9. Local test with production compose
-
-Before pushing to Railway:
-
-```bash
-docker compose up -d --build
-docker compose logs -f api
-```
+| Frontend (Vercel) | Backend | `NEXT_PUBLIC_API_URL` |
+| Backend | Postgres | `DATABASE_URL` |
+| Backend | Chroma | `CHROMA_HOST` / `CHROMA_PORT` |
 
 ## Troubleshooting
 
-### API fails to connect to Postgres
+### Pre-deploy command failed
 
-- Use Railway **private** networking URL for `DATABASE_URL` when API and Postgres are in the same project
-- Append `?sslmode=require` for external/managed URLs
+Clear **Start Command** and **Pre-deploy Command** in Railway deploy settings. Root `railway.json` sets both to `null`.
 
-### Migrations fail on boot
+### Backend starts but AI calls fail
 
-- Check API logs — sqlx runs migrations on startup
-- Ensure Postgres user has CREATE privileges
-
-### AI engine cannot reach Chroma
-
-- Use `RAILWAY_PRIVATE_DOMAIN` not public URL
-- Confirm Chroma service is running on port 8000
-
-### Dashboard shows wrong API / CORS errors
-
-- Rebuild dashboard after changing `NEXT_PUBLIC_API_URL`
-- API CORS is open (`Any` origin) — issues are usually wrong API URL
+- Confirm `CHROMA_HOST` points to the Chroma service private domain
+- Check backend logs — AI engine starts before the API
 
 ### On-chain demo not submitting txs
 
-- `SUI_MODE=testnet` on API
-- Chain runner running with valid `FRX_AGENT_PRIVATE_KEY`
-- Agent wallet funded with testnet SUI
+- Set `CHAIN_RUNNER_ENABLED=true` and `FRX_AGENT_PRIVATE_KEY`
+- Fund agent wallet with testnet SUI
 
-## Cost tips
-
-- Start with **mock mode** (`SUI_MODE=mock`) — no chain runner needed
-- Use **OpenAI** for AI engine instead of running Ollama
-- Deploy dashboard on **Vercel** (free tier) and backend on Railway
-
-See also: [Vercel dashboard deploy](./deploy-vercel.md) · [Overview](./DEPLOYMENT.md)
+See also: [Vercel](./deploy-vercel.md) · [Overview](./DEPLOYMENT.md)

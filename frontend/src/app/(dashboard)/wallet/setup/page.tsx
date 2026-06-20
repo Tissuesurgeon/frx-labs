@@ -77,7 +77,7 @@ export default function WalletSetupPage() {
       if (ON_CHAIN) {
         if (!AGENT_ADDRESS) {
           throw new Error(
-            'Set NEXT_PUBLIC_FRX_AGENT_ADDRESS in .env (run: cd apps/chain-runner && npm run generate-agent-key)',
+            'Set NEXT_PUBLIC_FRX_AGENT_ADDRESS in .env (run: cd backend/chain-runner && npm run generate-agent-key)',
           );
         }
         const depositMist = BigInt(funds.initialDeposit);

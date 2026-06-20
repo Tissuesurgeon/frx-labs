@@ -133,20 +133,20 @@ docker compose up -d
 cp .env.example .env
 
 # API (runs migrations automatically)
-cd apps/api && cargo run -p frx-labs-api
+cd backend/api && cargo run -p frx-labs-api
 
 # AI Engine
-cd apps/ai-engine
+cd backend/ai-engine
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/uvicorn app.main:app --reload --port 8001
 
 # Chain runner (testnet DeepBook PTB stub)
-cd apps/chain-runner && npm install && npm start
+cd backend/chain-runner && npm install && npm start
 
-# Dashboard (slow networks: prefer IPv4 + longer fetch timeout)
+# Frontend (slow networks: prefer IPv4 + longer fetch timeout)
 NODE_OPTIONS="--dns-result-order=ipv4first" pnpm install --fetch-timeout=1800000
-pnpm dev:dashboard
+pnpm dev:frontend
 ```
 
 ### Console-first onboarding (wallet login)
@@ -167,7 +167,7 @@ pnpm dev:dashboard
 ### On-chain demo (user wallet → FRX Vault → agent trade)
 
 1. Deploy the wallet package and configure `.env` (see script above)
-2. Start **chain-runner** (`cd apps/chain-runner && npm start`) with `FRX_AGENT_PRIVATE_KEY`
+2. Start **chain-runner** (`cd backend/chain-runner && npm start`) with `FRX_AGENT_PRIVATE_KEY`
 3. Set `SUI_MODE=testnet` and restart the API
 4. At `/wallet/setup`, connect your Sui wallet and sign **two transactions**:
    - **Create vault** — splits SUI from your wallet into a shared on-chain FRX Vault
@@ -195,15 +195,15 @@ Deploy to production with Docker and cloud guides:
 
 | Platform | Use for |
 |----------|---------|
-| **[Vercel](docs/deploy-vercel.md)** | Next.js dashboard |
-| **[Railway](docs/deploy-railway.md)** | API, AI engine, chain runner, Postgres, ChromaDB |
+| **[Vercel](docs/deploy-vercel.md)** | Next.js frontend (`frontend/`) |
+| **[Railway](docs/deploy-railway.md)** | Single backend container + Postgres + ChromaDB |
 
 ```bash
 # Full local production stack
 docker compose up -d --build
 ```
 
-See **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** for architecture, env vars, and the unified `Dockerfile`.
+See **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** for architecture — `Dockerfile.backend` (API + AI + chain runner) and `Dockerfile.frontend`.
 
 ## Troubleshooting
 
@@ -231,7 +231,7 @@ sudo docker compose up -d
 PGPASSWORD=frx psql -h localhost -p 5434 -U frx -d frx_shield -c 'SELECT 1'
 ```
 
-Then start the API from `apps/api` (it loads `frx-labs/.env` automatically).
+Then start the API from `backend/api` (it loads `frx-labs/.env` automatically).
 
 ### `pnpm install` times out on `next` / `@next/swc-*`
 
@@ -245,10 +245,11 @@ NODE_OPTIONS="--dns-result-order=ipv4first" pnpm install --fetch-timeout=1800000
 
 ```
 frx-labs/
-├── apps/
+├── frontend/             # Next.js console (@frx/dashboard)
+├── backend/
 │   ├── api/              # FRX Labs Rust API (Shield + Wallet routes)
 │   ├── ai-engine/        # Python AI risk engine
-│   └── dashboard/        # Next.js console
+│   └── chain-runner/     # Sui testnet transaction runner
 ├── packages/
 │   ├── shared/           # @frx/shared types
 │   ├── shield-sdk/       # @frx/shield-sdk

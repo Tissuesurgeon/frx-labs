@@ -1,25 +1,23 @@
 #!/usr/bin/env bash
-# Build all FRX Labs Docker images from the unified root Dockerfile.
+# Build FRX Labs Docker images (backend + frontend).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-TARGETS=(api ai-engine chain-runner dashboard)
 TAG_PREFIX="${TAG_PREFIX:-frx}"
 
-echo "Building ${#TARGETS[@]} images from Dockerfile (context: $ROOT)"
+echo "Building backend + frontend (context: $ROOT)"
 
-for target in "${TARGETS[@]}"; do
-  tag="${TAG_PREFIX}-${target}"
-  echo "==> docker build --target $target -t $tag ."
-  docker build --target "$target" -t "$tag" .
-done
+echo "==> docker build -f Dockerfile.backend -t ${TAG_PREFIX}-backend ."
+docker build -f Dockerfile.backend -t "${TAG_PREFIX}-backend" .
+
+echo "==> docker build -f Dockerfile.frontend -t ${TAG_PREFIX}-frontend ."
+docker build -f Dockerfile.frontend -t "${TAG_PREFIX}-frontend" .
 
 echo ""
 echo "Done. Images:"
-for target in "${TARGETS[@]}"; do
-  echo "  ${TAG_PREFIX}-${target}"
-done
+echo "  ${TAG_PREFIX}-backend"
+echo "  ${TAG_PREFIX}-frontend"
 echo ""
 echo "Or run the full stack: docker compose up -d --build"

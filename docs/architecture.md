@@ -21,9 +21,9 @@ External Agent → @frx/shield-sdk → POST /api/v1/execute
 
 | Component | Location | Stack |
 |-----------|----------|-------|
-| FRX Labs API | `apps/api` | Rust axum |
-| AI Risk Engine | `apps/ai-engine` | Python FastAPI |
-| Dashboard | `apps/dashboard` | Next.js |
+| FRX Labs API | `backend/api` | Rust axum |
+| AI Risk Engine | `backend/ai-engine` | Python FastAPI |
+| Frontend | `frontend` | Next.js |
 | Shield SDK | `packages/shield-sdk` | TypeScript |
 | Wallet SDK | `packages/wallet-sdk` | TypeScript |
 | Shield Move | `contracts/shield` | Sui Move |

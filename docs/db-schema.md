@@ -1,6 +1,6 @@
 # Database Schema
 
-PostgreSQL via sqlx migrations in `apps/api/migrations/`.
+PostgreSQL via sqlx migrations in `backend/api/migrations/`.
 
 ## Tables
 

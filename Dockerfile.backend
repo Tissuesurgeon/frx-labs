@@ -1,0 +1,72 @@
+# FRX Labs — unified backend (API + AI engine + optional chain runner)
+# Railway: RAILWAY_DOCKERFILE_PATH=Dockerfile.backend
+#
+# Exposes the Rust API on PORT (8080 by default). AI engine (8001) and
+# chain runner (8090) bind to localhost inside the container.
+
+FROM rust:1.86-bookworm AS api-builder
+
+WORKDIR /app
+
+COPY Cargo.toml Cargo.lock ./
+COPY backend/api/Cargo.toml backend/api/Cargo.toml
+
+RUN mkdir -p backend/api/src && \
+    echo "fn main() {}" > backend/api/src/main.rs && \
+    cargo build --release -p frx-labs-api 2>/dev/null || true
+
+COPY backend/api/src backend/api/src
+COPY backend/api/migrations backend/api/migrations
+COPY backend/api/data backend/api/data
+
+RUN touch backend/api/src/main.rs && cargo build --release -p frx-labs-api
+
+FROM node:20-bookworm AS chain-runner-build
+
+WORKDIR /chain-runner
+
+COPY backend/chain-runner/package.json ./
+RUN npm install --omit=dev
+
+COPY backend/chain-runner/src ./src
+COPY backend/chain-runner/scripts ./scripts
+
+FROM python:3.12-slim AS backend
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates curl && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY backend/ai-engine/requirements.txt ./ai-engine/requirements.txt
+RUN pip install --no-cache-dir --break-system-packages -r ./ai-engine/requirements.txt
+
+COPY backend/ai-engine/app ./ai-engine/app
+COPY --from=api-builder /app/target/release/frx-labs-api /app/frx-labs-api
+COPY backend/api/data ./data
+COPY --from=chain-runner-build /chain-runner ./chain-runner
+
+COPY scripts/docker-backend-entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+ENV API_HOST=0.0.0.0 \
+    API_PORT=8080 \
+    AI_ENGINE_PORT=8001 \
+    CHAIN_RUNNER_PORT=8090 \
+    AI_ENGINE_URL=http://127.0.0.1:8001 \
+    CHAIN_RUNNER_URL=http://127.0.0.1:8090 \
+    CHAIN_RUNNER_ENABLED=false \
+    PRICE_DATA_PATH=/app/data/sui_usd_daily.csv \
+    DEMO_SCENARIOS_PATH=/app/data/demo_scenarios.json \
+    RUST_LOG=info,frx_labs_api=info \
+    PYTHONUNBUFFERED=1
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
+  CMD sh -c 'curl -sf "http://127.0.0.1:${PORT:-8080}/health" || exit 1'
+
+ENTRYPOINT ["/app/entrypoint.sh"]

@@ -26,7 +26,7 @@ Package: `frx_shield` in `contracts/move/`
 
 ## Rust Integration
 
-`SuiService` in `apps/api/src/services/sui.rs` supports:
+`SuiService` in `backend/api/src/services/sui.rs` supports:
 - `mock` mode — deterministic object IDs and tx digests (default)
 - `devnet` mode — stub for sui-sdk PTB calls when toolchain is installed
 

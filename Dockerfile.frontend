@@ -1,17 +1,7 @@
-# FRX Labs — frontend (Next.js standalone)
-#
-# Backend (API + AI engine + chain runner): Dockerfile.backend
-# Vercel: deploy frontend/ directly
-#
-# Build frontend:
-#   docker build -f Dockerfile -t frx-frontend .
-#   docker build -f Dockerfile.frontend -t frx-frontend .
-#
-# Build backend:
-#   docker build -f Dockerfile.backend -t frx-backend .
-#
-# Full stack:
-#   docker compose up -d --build
+# FRX Labs — Frontend (Next.js standalone)
+# Railway optional: RAILWAY_DOCKERFILE_PATH=Dockerfile.frontend
+# Vercel: set Root Directory to frontend/ (preferred)
+# Build context must be the repository root.
 
 FROM node:22-alpine AS frontend-base
 RUN corepack enable && corepack prepare pnpm@11.1.3 --activate
@@ -52,7 +42,7 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
 
 RUN pnpm --filter @frx/dashboard build
 
-FROM node:22-alpine AS frontend
+FROM node:22-alpine
 
 WORKDIR /app
 

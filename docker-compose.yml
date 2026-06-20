@@ -1,14 +1,14 @@
 # FRX Labs — full stack (infra + app services)
 #
-# Infra only (local dev with native API/dashboard):
+# Infra only (local dev with native frontend/backend):
 #   docker compose up -d postgres chromadb
 #
 # Full stack:
 #   cp .env.example .env   # set JWT_SECRET, OPENAI_API_KEY, etc.
 #   docker compose up -d --build
 #
-# On-chain chain-runner:
-#   docker compose --profile onchain up -d --build
+# On-chain chain runner (inside backend container):
+#   set FRX_AGENT_PRIVATE_KEY + CHAIN_RUNNER_ENABLED=true in .env
 
 services:
   postgres:
@@ -36,19 +36,16 @@ services:
     environment:
       ANONYMIZED_TELEMETRY: "false"
 
-  api:
+  backend:
     build:
       context: .
-      dockerfile: Dockerfile
-      target: api
+      dockerfile: Dockerfile.backend
     ports:
       - "${API_PORT:-8080}:8080"
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgres://frx:${POSTGRES_PASSWORD:-frx}@postgres:5432/frx_shield}
       API_HOST: 0.0.0.0
       API_PORT: 8080
-      AI_ENGINE_URL: http://ai-engine:8001
-      CHAIN_RUNNER_URL: http://chain-runner:8090
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
       SUI_MODE: ${SUI_MODE:-mock}
       SUI_NETWORK: ${SUI_NETWORK:-testnet}
@@ -56,45 +53,23 @@ services:
       FRX_AGENT_PRIVATE_KEY: ${FRX_AGENT_PRIVATE_KEY:-}
       FRX_AGENT_ADDRESS: ${FRX_AGENT_ADDRESS:-}
       DEMO_RUNNER_ENABLED: ${DEMO_RUNNER_ENABLED:-true}
-    depends_on:
-      postgres:
-        condition: service_healthy
-      ai-engine:
-        condition: service_started
-
-  ai-engine:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: ai-engine
-    environment:
-      PORT: 8001
+      CHAIN_RUNNER_ENABLED: ${CHAIN_RUNNER_ENABLED:-false}
       CHROMA_HOST: chromadb
       CHROMA_PORT: 8000
       LLM_PROVIDER: ${LLM_PROVIDER:-openai}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
     depends_on:
-      - chromadb
+      postgres:
+        condition: service_healthy
+      chromadb:
+        condition: service_started
 
-  chain-runner:
+  frontend:
     build:
       context: .
       dockerfile: Dockerfile
-      target: chain-runner
-    environment:
-      PORT: 8090
-      SUI_NETWORK: ${SUI_NETWORK:-testnet}
-      FRX_WALLET_PACKAGE_ID: ${FRX_WALLET_PACKAGE_ID:-}
-      FRX_AGENT_PRIVATE_KEY: ${FRX_AGENT_PRIVATE_KEY:-}
-    profiles:
-      - onchain
-
-  dashboard:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: dashboard
+      target: frontend
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
         NEXT_PUBLIC_SUI_NETWORK: ${NEXT_PUBLIC_SUI_NETWORK:-testnet}
@@ -104,7 +79,7 @@ services:
     ports:
       - "${DASHBOARD_PORT:-3000}:3000"
     depends_on:
-      - api
+      - backend
 
 volumes:
   postgres_data:

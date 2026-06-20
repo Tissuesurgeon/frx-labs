@@ -28,9 +28,9 @@ echo "NEXT_PUBLIC_SUI_NETWORK=testnet"
 echo "SUI_MODE=testnet"
 echo ""
 echo "=== Generate FRX agent key (holds AgentCap, signs trades) ==="
-cd "$ROOT/apps/chain-runner"
+cd "$ROOT/backend/chain-runner"
 npm install --silent 2>/dev/null || npm install
 npm run generate-agent-key
 echo ""
 echo "Fund the agent address with testnet SUI, then start chain-runner:"
-echo "  cd apps/chain-runner && npm start"
+echo "  cd backend/chain-runner && npm start"

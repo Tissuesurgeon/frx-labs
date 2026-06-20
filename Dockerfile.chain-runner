@@ -1,5 +1,0 @@
-# syntax=docker/dockerfile:1.7-labs
-include {
-  path = "Dockerfile"
-  target = "chain-runner"
-}

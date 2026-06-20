@@ -3,15 +3,16 @@
   "private": true,
   "scripts": {
     "dev:api": "cargo run -p frx-labs-api",
-    "dev:ai": "cd apps/ai-engine && .venv/bin/uvicorn app.main:app --reload --port 8001",
+    "dev:ai": "cd backend/ai-engine && .venv/bin/uvicorn app.main:app --reload --port 8001",
+    "dev:frontend": "pnpm --filter @frx/dashboard dev",
     "dev:dashboard": "pnpm --filter @frx/dashboard dev",
     "build": "pnpm -r build && cargo build --release",
     "docker:up": "docker compose up -d",
     "docker:build": "docker compose build",
     "docker:stack": "docker compose up -d --build",
     "docker:images": "bash scripts/docker-build.sh",
-    "migrate": "cd apps/api && sqlx migrate run",
-    "seed": "cd apps/api && cargo run --bin seed"
+    "migrate": "cd backend/api && sqlx migrate run",
+    "seed": "cd backend/api && cargo run --bin seed"
   },
   "devDependencies": {
     "typescript": "^5.4.0"

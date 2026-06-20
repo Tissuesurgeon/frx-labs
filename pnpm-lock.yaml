@@ -15,7 +15,7 @@ importers:
         specifier: ^5.4.0
         version: 5.9.3
 
-  apps/chain-runner:
+  backend/chain-runner:
     dependencies:
       '@mysten/sui':
         specifier: 1.24.0
@@ -24,17 +24,17 @@ importers:
         specifier: ^4.21.0
         version: 4.22.2
 
-  apps/dashboard:
+  frontend:
     dependencies:
       '@frx/shared':
         specifier: workspace:*
-        version: link:../../packages/shared
+        version: link:../packages/shared
       '@frx/shield-sdk':
         specifier: workspace:*
-        version: link:../../packages/shield-sdk
+        version: link:../packages/shield-sdk
       '@frx/wallet-sdk':
         specifier: workspace:*
-        version: link:../../packages/wallet-sdk
+        version: link:../packages/wallet-sdk
       '@mysten/dapp-kit':
         specifier: ^0.14.0
         version: 0.14.53(@tanstack/react-query@5.101.0(react@18.3.1))(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.3)
