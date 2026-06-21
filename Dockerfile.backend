@@ -4,7 +4,7 @@
 # Exposes the Rust API on PORT (8080 by default). AI engine (8001) and
 # chain runner (8090) bind to localhost inside the container.
 
-FROM rust:1.86-bookworm AS api-builder
+FROM rust:1.88-bookworm AS api-builder
 
 WORKDIR /app
 
