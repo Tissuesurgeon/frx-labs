@@ -80,6 +80,19 @@ Set `NEXT_PUBLIC_API_URL` to the Railway backend public URL.
 
 ## Troubleshooting
 
+### Railway deployed the frontend (dashboard) instead of the backend
+
+Railway auto-detects a root `Dockerfile` — in this repo that file builds the **Next.js frontend**, not the API.
+
+**Fix the backend service:**
+
+1. **Settings → Build** → set variable `RAILWAY_DOCKERFILE_PATH=Dockerfile.backend`
+2. Or **Settings → Config file path** → `/railway.json` (points to `Dockerfile.backend`)
+3. **Delete** any separate Railway service that was auto-created for the dashboard — use **Vercel** for `frontend/` instead
+4. Redeploy and verify `https://<your-domain>/health` returns `ok` (not the Next.js home page)
+
+You deployed the backend correctly when logs show `Starting AI engine...` then `FRX Labs API listening on`.
+
 ### Pre-deploy command failed
 
 Clear **Start Command** and **Pre-deploy Command** in Railway deploy settings. Root `railway.json` sets both to `null`.

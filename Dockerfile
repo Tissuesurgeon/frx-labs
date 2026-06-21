@@ -1,7 +1,8 @@
 # FRX Labs — frontend (Next.js standalone)
 #
-# Backend (API + AI engine + chain runner): Dockerfile.backend
-# Vercel: deploy frontend/ directly
+# ⚠️  Do NOT deploy this file on Railway — use Dockerfile.backend for Railway.
+#     Railway auto-detects "Dockerfile" at repo root; root railway.json overrides
+#     to Dockerfile.backend. Frontend belongs on Vercel (frontend/).
 #
 # Build frontend:
 #   docker build -f Dockerfile -t frx-frontend .
