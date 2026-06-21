@@ -62,10 +62,6 @@ async fn main() -> anyhow::Result<()> {
         demo_runner: demo_runner.clone(),
     };
 
-    if let Some(runner) = &demo_runner {
-        resume_demo_for_active_agents(runner.clone(), state.clone());
-    }
-
     let public_routes = Router::new()
         .route("/health", get(|| async { "ok" }))
         .route(
@@ -256,30 +252,4 @@ fn load_env() {
     dotenvy::dotenv().ok();
     let root_env = format!("{}/../../.env", env!("CARGO_MANIFEST_DIR"));
     dotenvy::from_path(&root_env).ok();
-}
-
-fn resume_demo_for_active_agents(runner: Arc<services::demo_runner::DemoRunner>, state: AppState) {
-    tokio::spawn(async move {
-        let agents: Vec<uuid::Uuid> = match sqlx::query_scalar(
-            r#"
-            SELECT DISTINCT a.id
-            FROM agents a
-            JOIN agent_vault_links avl ON avl.agent_id = a.id
-            WHERE a.status = 'active'
-            "#,
-        )
-        .fetch_all(&state.pool)
-        .await
-        {
-            Ok(rows) => rows,
-            Err(e) => {
-                tracing::warn!(error = %e, "could not resume demo runner for active agents");
-                return;
-            }
-        };
-
-        for agent_id in agents {
-            runner.start_for_agent(state.clone(), agent_id);
-        }
-    });
 }
